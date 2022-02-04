@@ -6,13 +6,9 @@ import 'package:super_editor/src/core/editor.dart';
 import 'package:super_editor/src/default_editor/multi_node_editing.dart';
 import 'package:super_editor/src/default_editor/selection_upstream_downstream.dart';
 import 'package:super_editor/src/default_editor/text.dart';
-import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/flutter/geometry.dart';
 
 import '../core/document_layout.dart';
-
-// ignore: unused_element
-final _log = Logger(scope: 'box_component.dart');
 
 /// Base implementation for a [DocumentNode] that only supports [UpstreamDownstreamNodeSelection]s.
 abstract class BlockNode extends DocumentNode {

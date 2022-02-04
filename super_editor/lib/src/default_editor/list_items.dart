@@ -14,7 +14,7 @@ import 'layout_single_column/layout_single_column.dart';
 import 'paragraph.dart';
 import 'text.dart';
 
-final _log = Logger(scope: 'list_items.dart');
+final _log = editorDocLog;
 
 class ListItemNode extends TextNode {
   ListItemNode.ordered({
@@ -571,7 +571,7 @@ class IndentListItemCommand implements EditCommand {
     final node = document.getNodeById(nodeId);
     final listItem = node as ListItemNode;
     if (listItem.indent >= 6) {
-      _log.log('IndentListItemCommand', 'WARNING: Editor does not support an indent level beyond 6.');
+      _log.warning('IndentListItemCommand: WARNING: Editor does not support an indent level beyond 6.');
       return;
     }
 
@@ -781,12 +781,12 @@ class SplitListItemCommand implements EditCommand {
     final text = listItemNode.text;
     final startText = text.copyText(0, splitPosition.offset);
     final endText = splitPosition.offset < text.length ? text.copyText(splitPosition.offset) : AttributedText();
-    _log.log('SplitListItemCommand', 'Splitting list item:');
-    _log.log('SplitListItemCommand', ' - start text: "$startText"');
-    _log.log('SplitListItemCommand', ' - end text: "$endText"');
+    _log.info('SplitListItemCommand: Splitting list item:');
+    _log.info('SplitListItemCommand: - start text: "$startText"');
+    _log.info('SplitListItemCommand: - end text: "$endText"');
 
     // Change the current node's content to just the text before the caret.
-    _log.log('SplitListItemCommand', ' - changing the original list item text due to split');
+    _log.info(' - changing the original list item text due to split');
     // TODO: figure out how node changes should work in terms of
     //       a DocumentEditorTransaction (#67)
     listItemNode.text = startText;
@@ -806,7 +806,7 @@ class SplitListItemCommand implements EditCommand {
           );
 
     // Insert the new node after the current node.
-    _log.log('SplitListItemCommand', ' - inserting new node in document');
+    _log.info('SplitListItemCommand: - inserting new node in document');
     document.insertNodeAfter(
       existingNode: node,
       newNode: newNode,
@@ -816,7 +816,7 @@ class SplitListItemCommand implements EditCommand {
     // node that was split.
     composer.setComposingRegion(null);
 
-    _log.log('SplitListItemCommand', ' - inserted new node: ${newNode.id} after old one: ${node.id}');
+    _log.info('SplitListItemCommand: - inserted new node: ${newNode.id} after old one: ${node.id}');
 
     executor.logChanges([
       SplitListItemIntention.start(),
