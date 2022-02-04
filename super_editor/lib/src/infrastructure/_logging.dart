@@ -121,28 +121,3 @@ void printLog(logging.LogRecord record) {
   print(
       '(${record.time.second}.${record.time.millisecond.toString().padLeft(3, '0')}) ${record.loggerName} > ${record.level.name}: ${record.message}');
 }
-
-// TODO: get rid of this custom Logger when all references are replaced with logging package
-class Logger {
-  static bool _printLogs = false;
-  static void setLoggingMode(bool enabled) {
-    _printLogs = enabled;
-  }
-
-  Logger({
-    required scope,
-  }) : _scope = scope;
-
-  final String _scope;
-
-  void log(String tag, String message, [Exception? exception]) {
-    if (!Logger._printLogs) {
-      return;
-    }
-
-    print('[$_scope] - $tag: $message');
-    if (exception != null) {
-      print(' - ${exception.toString()}');
-    }
-  }
-}
