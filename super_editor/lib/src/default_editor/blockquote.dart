@@ -5,7 +5,6 @@ import 'package:super_editor/src/core/edit_context.dart';
 import 'package:super_editor/src/core/editor.dart';
 import 'package:super_editor/src/core/styles.dart';
 import 'package:super_editor/src/default_editor/attributions.dart';
-import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/attributed_text_styles.dart';
 import 'package:super_editor/src/infrastructure/keyboard.dart';
 
@@ -14,9 +13,6 @@ import 'layout_single_column/layout_single_column.dart';
 import 'paragraph.dart';
 import 'text.dart';
 import 'text_tools.dart';
-
-// ignore: unused_element
-final _log = Logger(scope: 'blockquote.dart');
 
 class BlockquoteComponentBuilder implements ComponentBuilder {
   const BlockquoteComponentBuilder();
