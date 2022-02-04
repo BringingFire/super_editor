@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:super_editor/src/core/styles.dart';
 import 'package:super_editor/src/default_editor/attributions.dart';
 import 'package:super_editor/src/default_editor/blocks/indentation.dart';
-import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/attributed_text_styles.dart';
 import 'package:super_text_layout/super_text_layout.dart';
 
@@ -12,9 +11,6 @@ import 'layout_single_column/layout_single_column.dart';
 import 'paragraph.dart';
 import 'text.dart';
 import 'text_tools.dart';
-
-// ignore: unused_element
-final _log = Logger(scope: 'blockquote.dart');
 
 class BlockquoteComponentBuilder implements ComponentBuilder {
   const BlockquoteComponentBuilder();

@@ -14,8 +14,6 @@ import 'package:super_editor/src/infrastructure/_logging.dart';
 
 import 'paragraph.dart';
 
-final _log = Logger(scope: 'multi_node_editing.dart');
-
 /// Request to paste the given structured [content] in the document at the
 /// given [pastePosition].
 class PasteStructuredContentEditorRequest implements EditRequest {
@@ -702,7 +700,7 @@ class DeleteContentCommand extends EditCommand {
 
   @override
   void execute(EditContext context, CommandExecutor executor) {
-    _log.log('DeleteSelectionCommand', 'DocumentEditor: deleting selection: $documentRange');
+    editorDocLog.info('DeleteSelectionCommand - DocumentEditor: deleting selection: $documentRange');
     final document = context.document;
     final selection = context.composer.selection;
     final nodes = document.getNodesInside(documentRange.start, documentRange.end);
@@ -767,7 +765,7 @@ class DeleteContentCommand extends EditCommand {
     );
 
     if (startNode.isDeletable) {
-      _log.log('DeleteSelectionCommand', ' - deleting partial selection within the starting node.');
+    editorDocLog.info('DeleteSelectionCommand - deleting partial selection within the starting node.');
       executor.logChanges(
         _deleteRangeWithinNodeFromPositionToEnd(
           document: document,
@@ -779,7 +777,7 @@ class DeleteContentCommand extends EditCommand {
     }
 
     if (endNode.isDeletable) {
-      _log.log('DeleteSelectionCommand', ' - deleting partial selection within ending node.');
+    editorDocLog.info('DeleteSelectionCommand - deleting partial selection within ending node.');
       executor.logChanges(
         _deleteRangeWithinNodeFromStartToPosition(
           document: document,
@@ -842,7 +840,7 @@ class DeleteContentCommand extends EditCommand {
       return;
     }
 
-    _log.log('DeleteSelectionCommand', ' - combining last node text with first node text');
+    editorDocLog.info('DeleteSelectionCommand - combining last node text with first node text');
     executor.logChanges([
       DocumentEdit(
         TextInsertionEvent(
@@ -860,14 +858,14 @@ class DeleteContentCommand extends EditCommand {
       ),
     );
 
-    _log.log('DeleteSelectionCommand', ' - deleting last node');
+    editorDocLog.info('DeleteSelectionCommand - deleting last node');
     document.deleteNode(endNodeAfterDeletion.id);
     executor.logChanges([
       DocumentEdit(
         NodeRemovedEvent(endNodeAfterDeletion.id, endNodeAfterDeletion),
       )
     ]);
-    _log.log('DeleteSelectionCommand', ' - done with selection deletion');
+    editorDocLog.info('DeleteSelectionCommand - done with selection deletion');
   }
 
   List<EditEvent> _deleteSelectionWithinSingleNode({
@@ -875,7 +873,7 @@ class DeleteContentCommand extends EditCommand {
     required DocumentRange normalizedRange,
     required DocumentNode node,
   }) {
-    _log.log('_deleteSelectionWithinSingleNode', ' - deleting selection within single node');
+    editorDocLog.info('_deleteSelectionWithinSingleNode - deleting selection within single node');
     final startPosition = normalizedRange.start.nodePosition;
     final endPosition = normalizedRange.end.nodePosition;
 
@@ -899,10 +897,10 @@ class DeleteContentCommand extends EditCommand {
         )
       ];
     } else if (node is TextNode) {
-      _log.log('_deleteSelectionWithinSingleNode', ' - its a TextNode');
+    editorDocLog.info('_deleteSelectionWithinSingleNode - its a TextNode');
       final startOffset = (startPosition as TextPosition).offset;
       final endOffset = (endPosition as TextPosition).offset;
-      _log.log('_deleteSelectionWithinSingleNode', ' - deleting from $startOffset to $endOffset');
+    editorDocLog.info('_deleteSelectionWithinSingleNode - deleting from $startOffset to $endOffset');
 
       final deletedText = node.text.copyText(startOffset, endOffset);
       document.replaceNodeById(
@@ -946,16 +944,16 @@ class DeleteContentCommand extends EditCommand {
       );
     }
 
-    _log.log('_deleteNodesBetweenFirstAndLast', ' - start node: ${startNode.id}');
-    _log.log('_deleteNodesBetweenFirstAndLast', ' - end node: ${endNode.id}');
-    _log.log('_deleteNodesBetweenFirstAndLast', ' - initially ${document.nodeCount} nodes');
+    editorDocLog.info('_deleteNodesBetweenFirstAndLast - start node: ${startNode.id}');
+    editorDocLog.info('_deleteNodesBetweenFirstAndLast - end node: ${endNode.id}');
+    editorDocLog.info('_deleteNodesBetweenFirstAndLast - initially ${document.nodeCount} nodes');
 
     // Remove nodes from last to first so that indices don't get
     // screwed up during removal.
     final changes = <EditEvent>[];
     var nodeToDelete = document.getNodeAfter(startNode);
     while (nodeToDelete != null && nodeToDelete != endNode) {
-      _log.log('_deleteNodesBetweenFirstAndLast', ' - deleting node: ${nodeToDelete.id}');
+    editorDocLog.info('_deleteNodesBetweenFirstAndLast - deleting node: ${nodeToDelete.id}');
       final nextNode = document.getNodeAfter(nodeToDelete);
       if (nodeToDelete.isDeletable) {
         // This node is deletable, so delete it.
@@ -1106,7 +1104,7 @@ class DeleteContentCommand extends EditCommand {
       //       depending on the first node still existing at the end of
       //       the deletion. This is a fragile relationship between the
       //       composer and the editor and needs to be addressed.
-      _log.log('_deleteBlockNode', ' - replacing block-level node with a ParagraphNode: ${node.id}');
+    editorDocLog.info('_deleteBlockNode - replacing block-level node with a ParagraphNode: ${node.id}');
 
       final newNode = ParagraphNode(id: node.id, text: AttributedText());
       document.replaceNodeById(node.id, newNode);
@@ -1120,7 +1118,7 @@ class DeleteContentCommand extends EditCommand {
         ),
       ];
     } else {
-      _log.log('_deleteBlockNode', ' - deleting block level node');
+    editorDocLog.info('_deleteBlockNode - deleting block level node');
       document.deleteNode(node.id);
 
       return [
@@ -1314,18 +1312,18 @@ class DeleteNodeCommand extends EditCommand {
 
   @override
   void execute(EditContext context, CommandExecutor executor) {
-    _log.log('DeleteNodeCommand', 'DocumentEditor: deleting node: $nodeId');
+    editorDocLog.info('DeleteNodeCommand - DocumentEditor: deleting node: $nodeId');
 
     final document = context.document;
     final node = document.getNodeById(nodeId);
     if (node == null) {
-      _log.log('DeleteNodeCommand', 'No such node. Returning.');
+    editorDocLog.info('DeleteNodeCommand - No such node. Returning.');
       return;
     }
 
-    _log.log('DeleteNodeCommand', ' - deleting node');
+    editorDocLog.info('DeleteNodeCommand - deleting node');
     document.deleteNode(node.id);
-    _log.log('DeleteNodeCommand', ' - done with node deletion');
+    editorDocLog.info('DeleteNodeCommand - done with node deletion');
     executor.logChanges([
       DocumentEdit(
         NodeRemovedEvent(node.id, node),
