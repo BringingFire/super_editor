@@ -1441,7 +1441,7 @@ class CommonEditorOperations {
 
     editorOpsLog.fine('_convertParagraphIfDesired', ' - text before caret: "$textBeforeCaret"');
     if (hasUnorderedListItemMatch || hasOrderedListItemMatch) {
-      editorOpsLog.fine('_convertParagraphIfDesired', ' - found unordered list item prefix');
+      editorOpsLog.fine('_convertParagraphIfDesired', ' - found list item prefix');
       int startOfNewText = textBeforeCaret.length;
       while (startOfNewText < node.text.text.length && node.text.text[startOfNewText] == ' ') {
         startOfNewText += 1;
@@ -1458,6 +1458,47 @@ class CommonEditorOperations {
       );
 
       // We removed some text at the beginning of the list item.
+      // Move the selection back by that same amount.
+      final textPosition = composer.selection!.extent.nodePosition as TextNodePosition;
+      composer.selection = DocumentSelection.collapsed(
+        position: DocumentPosition(
+          nodeId: node.id,
+          nodePosition: TextNodePosition(offset: textPosition.offset - startOfNewText),
+        ),
+      );
+
+      return true;
+    }
+
+    final headingPattern = RegExp(r'^\s*(#+)\s+$');
+    final headingMatch = headingPattern.firstMatch(textBeforeCaret);
+    if (headingMatch != null) {
+      editorOpsLog.fine('_convertParagraphIfDesired', ' - found heading prefix');
+      int startOfNewText = textBeforeCaret.length;
+      while (startOfNewText < node.text.text.length && node.text.text[startOfNewText] == ' ') {
+        startOfNewText += 1;
+      }
+      final adjustedText = node.text.copyText(startOfNewText);
+      final headingLevel = min(headingMatch.group(1)!.length, 6);
+      final headingAttribution = (const [
+        header1Attribution,
+        header1Attribution,
+        header2Attribution,
+        header3Attribution,
+        header4Attribution,
+        header5Attribution,
+        header6Attribution
+      ])[headingLevel];
+      final newNode =
+          ParagraphNode(id: node.id, text: adjustedText, metadata: {...node.metadata, 'blockType': headingAttribution});
+
+      editor.executeCommand(
+        EditorCommandFunction((document, transaction) {
+          transaction.replaceNode(oldNode: node, newNode: newNode);
+        }),
+      );
+
+      // We removed some text at the beginning of the text.
       // Move the selection back by that same amount.
       final textPosition = composer.selection!.extent.nodePosition as TextNodePosition;
       composer.selection = DocumentSelection.collapsed(
