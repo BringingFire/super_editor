@@ -1,0 +1,9 @@
+name: super_editor
+repository: https://github.com/superlistapp/super_editor
+
+packages:
+  - super_editor/pubspec.yaml
+  - super_editor/example/pubspec.yaml
+  - super_editor_markdown/pubspec.yaml
+  - super_text/pubspec.yaml
+  - attributed_text/pubspec.yaml
