@@ -227,7 +227,7 @@ class ListItemComponentViewModel extends SingleColumnLayoutComponentViewModel wi
           ordinalValue == other.ordinalValue &&
           indent == other.indent &&
           text == other.text &&
-          textStyleBuilder == other.textStyleBuilder &&
+          // textStyleBuilder == other.textStyleBuilder &&
           textDirection == other.textDirection &&
           selection == other.selection &&
           selectionColor == other.selectionColor;

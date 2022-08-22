@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
@@ -140,15 +141,22 @@ class MutableDocument with ChangeNotifier implements Document {
   }
 
   final List<DocumentNode> _nodes;
+  final Map<String, int> _nodeIndexCache = HashMap();
 
   @override
   List<DocumentNode> get nodes => _nodes;
 
   @override
   DocumentNode? getNodeById(String nodeId) {
-    return _nodes.firstWhereOrNull(
+    if (_nodeIndexCache.containsKey(nodeId)) {
+      return _nodes[_nodeIndexCache[nodeId]!];
+    }
+    final index = _nodes.indexWhere(
       (element) => element.id == nodeId,
     );
+    if (index < 0) return null;
+    _nodeIndexCache[nodeId] = index;
+    return _nodes[index];
   }
 
   @override
@@ -162,13 +170,20 @@ class MutableDocument with ChangeNotifier implements Document {
 
   @override
   int getNodeIndex(DocumentNode node) {
-    return _nodes.indexOf(node);
+    final index = getNodeIndexById(node.id);
+    if (index < 0) return -1;
+    if (_nodes[index] == node) return index;
+    return -1;
   }
 
   @override
   int getNodeIndexById(String nodeId) {
-    final node = getNodeById(nodeId);
-    return node != null ? getNodeIndex(node) : -1;
+    final cachedIndex = _nodeIndexCache[nodeId];
+    if (cachedIndex != null) return cachedIndex;
+    final index = _nodes.indexWhere((node) => node.id == nodeId);
+    if (index < 0) return -1;
+    _nodeIndexCache[nodeId] = index;
+    return index;
   }
 
   @override
@@ -180,12 +195,15 @@ class MutableDocument with ChangeNotifier implements Document {
   @override
   DocumentNode? getNodeAfter(DocumentNode node) {
     final nodeIndex = getNodeIndex(node);
-    return nodeIndex >= 0 && nodeIndex < nodes.length - 1 ? getNodeAt(nodeIndex + 1) : null;
+    return nodeIndex >= 0 && nodeIndex < _nodes.length - 1 ? getNodeAt(nodeIndex + 1) : null;
   }
 
   @override
-  DocumentNode? getNode(DocumentPosition position) =>
-      _nodes.firstWhereOrNull((element) => element.id == position.nodeId);
+  DocumentNode? getNode(DocumentPosition position) {
+    final index = getNodeIndexById(position.nodeId);
+    if (index < 0) return null;
+    return _nodes[index];
+  }
 
   @override
   DocumentRange getRangeBetween(DocumentPosition position1, DocumentPosition position2) {
@@ -198,17 +216,15 @@ class MutableDocument with ChangeNotifier implements Document {
 
   @override
   List<DocumentNode> getNodesInside(DocumentPosition position1, DocumentPosition position2) {
-    final node1 = getNode(position1);
-    if (node1 == null) {
+    final index1 = getNodeIndexById(position1.nodeId);
+    if (index1 < 0) {
       throw Exception('No such position in document: $position1');
     }
-    final index1 = _nodes.indexOf(node1);
 
-    final node2 = getNode(position2);
-    if (node2 == null) {
+    final index2 = getNodeIndexById(position2.nodeId);
+    if (index2 < 0) {
       throw Exception('No such position in document: $position2');
     }
-    final index2 = _nodes.indexOf(node2);
 
     final from = min(index1, index2);
     final to = max(index1, index2);
@@ -218,9 +234,10 @@ class MutableDocument with ChangeNotifier implements Document {
 
   /// Inserts the given [node] into the [Document] at the given [index].
   void insertNodeAt(int index, DocumentNode node) {
-    if (index <= nodes.length) {
-      nodes.insert(index, node);
+    if (index <= _nodes.length) {
+      _nodes.insert(index, node);
       node.addListener(_forwardNodeChange);
+      _nodeIndexCache.clear();
       notifyListeners();
     }
   }
@@ -230,9 +247,10 @@ class MutableDocument with ChangeNotifier implements Document {
     required DocumentNode existingNode,
     required DocumentNode newNode,
   }) {
-    final nodeIndex = nodes.indexOf(existingNode);
-    nodes.insert(nodeIndex, newNode);
+    final nodeIndex = _nodes.indexOf(existingNode);
+    _nodes.insert(nodeIndex, newNode);
     newNode.addListener(_forwardNodeChange);
+    _nodeIndexCache.clear();
     notifyListeners();
   }
 
@@ -241,19 +259,21 @@ class MutableDocument with ChangeNotifier implements Document {
     required DocumentNode existingNode,
     required DocumentNode newNode,
   }) {
-    final nodeIndex = nodes.indexOf(existingNode);
-    if (nodeIndex >= 0 && nodeIndex < nodes.length) {
-      nodes.insert(nodeIndex + 1, newNode);
+    final nodeIndex = _nodes.indexOf(existingNode);
+    if (nodeIndex >= 0 && nodeIndex < _nodes.length) {
+      _nodes.insert(nodeIndex + 1, newNode);
       newNode.addListener(_forwardNodeChange);
+      _nodeIndexCache.clear();
       notifyListeners();
     }
   }
 
   /// Deletes the node at the given [index].
   void deleteNodeAt(int index) {
-    if (index >= 0 && index < nodes.length) {
-      final removedNode = nodes.removeAt(index);
+    if (index >= 0 && index < _nodes.length) {
+      final removedNode = _nodes.removeAt(index);
       removedNode.removeListener(_forwardNodeChange);
+      _nodeIndexCache.clear();
       notifyListeners();
     } else {
       editorDocLog.warning('Could not delete node. Index out of range: $index');
@@ -262,14 +282,16 @@ class MutableDocument with ChangeNotifier implements Document {
 
   /// Deletes the given [node] from the [Document].
   bool deleteNode(DocumentNode node) {
-    bool isRemoved = false;
-
     node.removeListener(_forwardNodeChange);
-    isRemoved = nodes.remove(node);
+    final index = getNodeIndex(node);
+    if (index >= 0) {
+      _nodes.removeAt(index);
+      _nodeIndexCache.clear();
+    }
 
     notifyListeners();
 
-    return isRemoved;
+    return index >= 0;
   }
 
   /// Moves a [DocumentNode] matching the given [nodeId] from its current index
@@ -277,15 +299,14 @@ class MutableDocument with ChangeNotifier implements Document {
   ///
   /// If none of the nodes in this document match [nodeId], throws an error.
   void moveNode({required String nodeId, required int targetIndex}) {
-    final node = getNodeById(nodeId);
-    if (node == null) {
+    final nodeIndex = getNodeIndexById(nodeId);
+    if (nodeIndex < 0) {
       throw Exception('Could not find node with nodeId: $nodeId');
     }
 
-    if (nodes.remove(node)) {
-      nodes.insert(targetIndex, node);
-      notifyListeners();
-    }
+    _nodes.insert(targetIndex, _nodes.removeAt(nodeIndex));
+    _nodeIndexCache.clear();
+    notifyListeners();
   }
 
   /// Replaces the given [oldNode] with the given [newNode]
@@ -293,15 +314,20 @@ class MutableDocument with ChangeNotifier implements Document {
     required DocumentNode oldNode,
     required DocumentNode newNode,
   }) {
-    final index = _nodes.indexOf(oldNode);
+    final index = getNodeIndex(oldNode);
 
     if (index != -1) {
       oldNode.removeListener(_forwardNodeChange);
       _nodes.removeAt(index);
 
       newNode.addListener(_forwardNodeChange);
-      _nodes.insert(index, newNode);
+      try {
+        _nodes.insert(index, newNode);
+      } catch (e) {
+        print(e);
+      }
 
+      _nodeIndexCache.clear();
       notifyListeners();
     } else {
       throw Exception('Could not find oldNode: ${oldNode.id}');

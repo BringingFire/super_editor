@@ -1,5 +1,4 @@
 import 'package:attributed_text/attributed_text.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:super_editor/src/core/document.dart';
@@ -162,7 +161,7 @@ class ParagraphComponentViewModel extends SingleColumnLayoutComponentViewModel w
           nodeId == other.nodeId &&
           blockType == other.blockType &&
           text == other.text &&
-          textStyleBuilder == other.textStyleBuilder &&
+          // textStyleBuilder == other.textStyleBuilder &&
           textDirection == other.textDirection &&
           textAlignment == other.textAlignment &&
           selection == other.selection &&
