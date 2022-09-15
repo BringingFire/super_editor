@@ -1,11 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:super_editor/src/core/document_debug_paint.dart';
 import 'package:super_editor/src/default_editor/document_scrollable.dart';
-import 'package:super_editor/src/default_editor/layout_single_column/_layout.dart';
-import 'package:super_editor/src/default_editor/layout_single_column/_presenter.dart';
 import 'package:super_editor/src/infrastructure/content_layers.dart';
-import 'package:super_editor/src/infrastructure/documents/document_scroller.dart';
-import 'package:super_editor/src/infrastructure/viewport_size_reporting.dart';
+import 'package:super_editor/super_editor.dart';
+
+typedef DocumentLayoutBuilder = Widget Function({
+  required BuildContext context,
+  required LayerLink documentLayoutLink,
+  required GlobalKey<State<StatefulWidget>> documentLayoutKey,
+  required SingleColumnLayoutPresenter presenter,
+  required List<ComponentBuilder> componentBuilders,
+  required DebugPaintConfig debugPaint,
+  required List<WidgetBuilder> underlays,
+  required List<WidgetBuilder> overlays,
+});
+
+Widget defaultDocumentLayoutBuilder({
+  required BuildContext context,
+  required LayerLink documentLayoutLink,
+  required GlobalKey<State<StatefulWidget>> documentLayoutKey,
+  required SingleColumnLayoutPresenter presenter,
+  required List<ComponentBuilder> componentBuilders,
+  required DebugPaintConfig debugPaint,
+  required List<WidgetBuilder> underlays,
+  required List<WidgetBuilder> overlays,
+}) {
+  return Align(
+    alignment: Alignment.topCenter,
+    child: ContentLayers(
+      content: (onBuildScheduled) => CompositedTransformTarget(
+        link: documentLayoutLink,
+        child: SingleColumnDocumentLayout(
+          key: documentLayoutKey,
+          presenter: presenter,
+          componentBuilders: componentBuilders,
+          onBuildScheduled: onBuildScheduled,
+          showDebugPaint: debugPaint.layout,
+        ),
+      ),
+      underlays: underlays,
+      overlays: overlays,
+    ),
+  );
+}
 
 /// A scaffold that combines pieces to create a scrolling single-column document, with
 /// gestures placed beneath the document.
@@ -23,6 +59,7 @@ class DocumentScaffold<ContextType> extends StatefulWidget {
     required this.scroller,
     required this.presenter,
     required this.componentBuilders,
+    required this.layoutBuilder,
     this.underlays = const [],
     this.overlays = const [],
     this.debugPaint = const DebugPaintConfig(),
@@ -71,6 +108,8 @@ class DocumentScaffold<ContextType> extends StatefulWidget {
   /// Paints some extra visual ornamentation to help with debugging.
   final DebugPaintConfig debugPaint;
 
+  final DocumentLayoutBuilder layoutBuilder;
+
   @override
   State<DocumentScaffold> createState() => _DocumentScaffoldState();
 }
@@ -80,7 +119,16 @@ class _DocumentScaffoldState extends State<DocumentScaffold> {
   Widget build(BuildContext context) {
     return _buildDocumentScrollable(
       child: _buildGestureSystem(
-        child: _buildDocumentLayout(),
+        child: widget.layoutBuilder(
+          context: context,
+          componentBuilders: widget.componentBuilders,
+          debugPaint: widget.debugPaint,
+          documentLayoutKey: widget.documentLayoutKey,
+          documentLayoutLink: widget.documentLayoutLink,
+          overlays: widget.overlays,
+          underlays: widget.underlays,
+          presenter: widget.presenter,
+        ),
       ),
     );
   }
@@ -130,26 +178,6 @@ class _DocumentScaffoldState extends State<DocumentScaffold> {
           ),
           child,
         ],
-      ),
-    );
-  }
-
-  Widget _buildDocumentLayout() {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ContentLayers(
-        content: (onBuildScheduled) => CompositedTransformTarget(
-          link: widget.documentLayoutLink,
-          child: SingleColumnDocumentLayout(
-            key: widget.documentLayoutKey,
-            presenter: widget.presenter,
-            componentBuilders: widget.componentBuilders,
-            onBuildScheduled: onBuildScheduled,
-            showDebugPaint: widget.debugPaint.layout,
-          ),
-        ),
-        underlays: widget.underlays,
-        overlays: widget.overlays,
       ),
     );
   }

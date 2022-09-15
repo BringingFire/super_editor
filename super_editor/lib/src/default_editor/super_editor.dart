@@ -96,6 +96,7 @@ class SuperEditor extends StatefulWidget {
     required this.composer,
     this.scrollController,
     this.documentLayoutKey,
+    this.documentLayoutBuilder = defaultDocumentLayoutBuilder,
     Stylesheet? stylesheet,
     this.customStylePhases = const [],
     List<ComponentBuilder>? componentBuilders,
@@ -149,6 +150,8 @@ class SuperEditor extends StatefulWidget {
   /// This key can be used to lookup visual components in the document
   /// layout within this `SuperEditor`.
   final GlobalKey? documentLayoutKey;
+
+  final DocumentLayoutBuilder documentLayoutBuilder;
 
   /// Style rules applied through the document presentation.
   final Stylesheet stylesheet;
@@ -521,6 +524,7 @@ class SuperEditorState extends State<SuperEditor> {
             scroller: _scroller,
             presenter: presenter,
             componentBuilders: widget.componentBuilders,
+            layoutBuilder: widget.documentLayoutBuilder,
             overlays: [
               // Layer that positions and sizes leader widgets at the bounds
               // of the users selection so that carets, handles, toolbars, and
