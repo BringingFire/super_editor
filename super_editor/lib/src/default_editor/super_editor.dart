@@ -28,6 +28,27 @@ import 'paragraph.dart';
 import 'text.dart';
 import 'unknown_component.dart';
 
+typedef DocumentLayoutBuilder = Widget Function({
+  required GlobalKey documentLayoutKey,
+  required SingleColumnLayoutPresenter presenter,
+  required List<ComponentBuilder> componentBuilders,
+  bool showDebugPaint,
+});
+
+Widget _defaultDocumentLayoutBuilder({
+  required GlobalKey documentLayoutKey,
+  required SingleColumnLayoutPresenter presenter,
+  required List<ComponentBuilder> componentBuilders,
+  bool showDebugPaint = false,
+}) {
+  return SingleColumnDocumentLayout(
+    key: documentLayoutKey,
+    presenter: presenter,
+    componentBuilders: componentBuilders,
+    showDebugPaint: showDebugPaint,
+  );
+}
+
 /// A rich text editor that displays a document in a single-column layout.
 ///
 /// A [SuperEditor] brings together the key pieces needed
@@ -78,6 +99,7 @@ class SuperEditor extends StatefulWidget {
     this.composer,
     this.scrollController,
     this.documentLayoutKey,
+    this.documentLayoutBuilder = _defaultDocumentLayoutBuilder,
     Stylesheet? stylesheet,
     this.customStylePhases = const [],
     this.inputSource = DocumentInputSource.keyboard,
@@ -105,6 +127,7 @@ class SuperEditor extends StatefulWidget {
     this.composer,
     this.scrollController,
     this.documentLayoutKey,
+    this.documentLayoutBuilder = _defaultDocumentLayoutBuilder,
     Stylesheet? stylesheet,
     this.customStylePhases = const [],
     List<ComponentBuilder>? componentBuilders,
@@ -138,6 +161,7 @@ class SuperEditor extends StatefulWidget {
     this.composer,
     this.scrollController,
     this.documentLayoutKey,
+    this.documentLayoutBuilder = _defaultDocumentLayoutBuilder,
     Stylesheet? stylesheet,
     this.customStylePhases = const [],
     List<ComponentBuilder>? componentBuilders,
@@ -181,6 +205,8 @@ class SuperEditor extends StatefulWidget {
   /// This key can be used to lookup visual components in the document
   /// layout within this `SuperEditor`.
   final GlobalKey? documentLayoutKey;
+
+  final DocumentLayoutBuilder documentLayoutBuilder;
 
   /// Style rules applied through the document presentation.
   final Stylesheet stylesheet;
@@ -494,12 +520,11 @@ class SuperEditorState extends State<SuperEditor> {
   Widget build(BuildContext context) {
     return _buildInputSystem(
       child: _buildGestureSystem(
-        documentLayout: SingleColumnDocumentLayout(
-          key: _docLayoutKey,
-          presenter: _docLayoutPresenter!,
-          componentBuilders: widget.componentBuilders,
-          showDebugPaint: widget.debugPaint.layout,
-        ),
+        documentLayout: widget.documentLayoutBuilder(
+            documentLayoutKey: _docLayoutKey,
+            componentBuilders: widget.componentBuilders,
+            presenter: _docLayoutPresenter!,
+            showDebugPaint: widget.debugPaint.layout),
       ),
     );
   }
