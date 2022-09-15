@@ -40,6 +40,54 @@ import 'paragraph.dart';
 import 'text.dart';
 import 'unknown_component.dart';
 
+typedef DocumentLayoutBuilder = Widget Function({
+  required BuildContext context,
+  required SuperEditorContext editContext,
+  required DocumentGestureMode gestureMode,
+  required GlobalKey documentLayoutKey,
+  required SingleColumnLayoutPresenter presenter,
+  required List<ComponentBuilder> componentBuilders,
+  required List<DocumentLayerBuilder> documentOverlayBuilders,
+  bool showDebugPaint,
+});
+
+Widget _defaultDocumentLayoutBuilder({
+  required BuildContext context,
+  required SuperEditorContext editContext,
+  required DocumentGestureMode gestureMode,
+  required GlobalKey documentLayoutKey,
+  required SingleColumnLayoutPresenter presenter,
+  required List<ComponentBuilder> componentBuilders,
+  required List<DocumentLayerBuilder> documentOverlayBuilders,
+  bool showDebugPaint = false,
+}) {
+    switch (gestureMode) {
+      case DocumentGestureMode.mouse:
+        return ContentLayers(
+          content: (onBuildScheduled) => SingleColumnDocumentLayout(
+            key: documentLayoutKey,
+            presenter: presenter,
+            componentBuilders: componentBuilders,
+            onBuildScheduled: onBuildScheduled,
+            showDebugPaint: showDebugPaint,
+          ),
+          overlays: [
+            for (final overlayBuilder in documentOverlayBuilders) //
+              overlayBuilder.build(context, editContext),
+          ],
+        );
+      case DocumentGestureMode.android:
+      case DocumentGestureMode.iOS:
+        // TODO: bring overlay builders to mobile, then get rid of this switch statement
+        return SingleColumnDocumentLayout(
+          key: documentLayoutKey,
+          presenter: presenter,
+          componentBuilders: componentBuilders,
+          showDebugPaint: showDebugPaint,
+        );
+    }
+}
+
 /// A rich text editor that displays a document in a single-column layout.
 ///
 /// A [SuperEditor] brings together the key pieces needed
@@ -95,6 +143,7 @@ class SuperEditor extends StatefulWidget {
     required this.composer,
     this.scrollController,
     this.documentLayoutKey,
+    this.documentLayoutBuilder = _defaultDocumentLayoutBuilder,
     Stylesheet? stylesheet,
     this.customStylePhases = const [],
     List<ComponentBuilder>? componentBuilders,
@@ -148,6 +197,8 @@ class SuperEditor extends StatefulWidget {
   /// This key can be used to lookup visual components in the document
   /// layout within this `SuperEditor`.
   final GlobalKey? documentLayoutKey;
+
+  final DocumentLayoutBuilder documentLayoutBuilder;
 
   /// Style rules applied through the document presentation.
   final Stylesheet stylesheet;
@@ -554,7 +605,16 @@ class SuperEditorState extends State<SuperEditor> {
         clearSelectionWhenEditorLosesFocus: widget.selectionPolicies.clearSelectionWhenEditorLosesFocus,
         child: _buildInputSystem(
           child: _buildGestureSystem(
-            documentLayout: _buildDocumentLayout(),
+            documentLayout: widget.documentLayoutBuilder(
+              context: context,
+              editContext: editContext,
+              documentOverlayBuilders: widget.documentOverlayBuilders,
+              gestureMode: gestureMode,
+              documentLayoutKey: _docLayoutKey,
+              presenter: _docLayoutPresenter!,
+              componentBuilders: widget.componentBuilders,
+              showDebugPaint: widget.debugPaint.layout,
+            ),
           ),
         ),
       ),
@@ -693,34 +753,6 @@ class SuperEditorState extends State<SuperEditor> {
         );
       },
     );
-  }
-
-  Widget _buildDocumentLayout() {
-    switch (gestureMode) {
-      case DocumentGestureMode.mouse:
-        return ContentLayers(
-          content: (onBuildScheduled) => SingleColumnDocumentLayout(
-            key: _docLayoutKey,
-            presenter: _docLayoutPresenter!,
-            componentBuilders: widget.componentBuilders,
-            onBuildScheduled: onBuildScheduled,
-            showDebugPaint: widget.debugPaint.layout,
-          ),
-          overlays: [
-            for (final overlayBuilder in widget.documentOverlayBuilders) //
-              overlayBuilder.build(context, editContext),
-          ],
-        );
-      case DocumentGestureMode.android:
-      case DocumentGestureMode.iOS:
-        // TODO: bring overlay builders to mobile, then get rid of this switch statement
-        return SingleColumnDocumentLayout(
-          key: _docLayoutKey,
-          presenter: _docLayoutPresenter!,
-          componentBuilders: widget.componentBuilders,
-          showDebugPaint: widget.debugPaint.layout,
-        );
-    }
   }
 }
 
