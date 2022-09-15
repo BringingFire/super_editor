@@ -343,6 +343,7 @@ class SuperReaderState extends State<SuperReader> {
         gestureBuilder: _buildGestureInteractor,
         scrollController: _scrollController,
         autoScrollController: _autoScrollController,
+        layoutBuilder: defaultDocumentLayoutBuilder,
         // TODO: Finish integrating the DocumentScroller in SuperReader (https://github.com/superlistapp/super_editor/issues/1306)
         scroller: _scroller,
         presenter: _docLayoutPresenter!,
