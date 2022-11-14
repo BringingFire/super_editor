@@ -5,5 +5,11 @@ packages:
   - super_editor/pubspec.yaml
   - super_editor/example/pubspec.yaml
   - super_editor_markdown/pubspec.yaml
-  - super_text/pubspec.yaml
+  - super_text_layout/pubspec.yaml
+  - super_text_layout/example/pubspec.yaml
   - attributed_text/pubspec.yaml
+  - website/pubspec.yaml
+
+command:
+  bootstrap:
+   usePubspecOverrides: true
