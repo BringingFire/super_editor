@@ -1486,7 +1486,7 @@ class CommonEditorOperations {
         header4Attribution,
         header5Attribution,
         header6Attribution
-      ])[min(headingLevel,3];
+      ])[min(headingLevel,3)];
       final newNode =
           ParagraphNode(id: node.id, text: adjustedText, metadata: {...node.metadata, 'blockType': headingAttribution});
 
