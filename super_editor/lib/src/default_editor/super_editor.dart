@@ -61,31 +61,31 @@ Widget _defaultDocumentLayoutBuilder({
   required List<DocumentLayerBuilder> documentOverlayBuilders,
   bool showDebugPaint = false,
 }) {
-    switch (gestureMode) {
-      case DocumentGestureMode.mouse:
-        return ContentLayers(
-          content: (onBuildScheduled) => SingleColumnDocumentLayout(
-            key: documentLayoutKey,
-            presenter: presenter,
-            componentBuilders: componentBuilders,
-            onBuildScheduled: onBuildScheduled,
-            showDebugPaint: showDebugPaint,
-          ),
-          overlays: [
-            for (final overlayBuilder in documentOverlayBuilders) //
-              overlayBuilder.build(context, editContext),
-          ],
-        );
-      case DocumentGestureMode.android:
-      case DocumentGestureMode.iOS:
-        // TODO: bring overlay builders to mobile, then get rid of this switch statement
-        return SingleColumnDocumentLayout(
+  switch (gestureMode) {
+    case DocumentGestureMode.mouse:
+      return ContentLayers(
+        content: (onBuildScheduled) => SingleColumnDocumentLayout(
           key: documentLayoutKey,
           presenter: presenter,
           componentBuilders: componentBuilders,
+          onBuildScheduled: onBuildScheduled,
           showDebugPaint: showDebugPaint,
-        );
-    }
+        ),
+        overlays: [
+          for (final overlayBuilder in documentOverlayBuilders) //
+            overlayBuilder.build(context, editContext),
+        ],
+      );
+    case DocumentGestureMode.android:
+    case DocumentGestureMode.iOS:
+      // TODO: bring overlay builders to mobile, then get rid of this switch statement
+      return SingleColumnDocumentLayout(
+        key: documentLayoutKey,
+        presenter: presenter,
+        componentBuilders: componentBuilders,
+        showDebugPaint: showDebugPaint,
+      );
+  }
 }
 
 /// A rich text editor that displays a document in a single-column layout.
@@ -702,6 +702,8 @@ class SuperEditorState extends State<SuperEditor> {
   Widget _buildDesktopGestureSystem(Widget documentLayout) {
     return LayoutBuilder(
       builder: (context, viewportConstraints) {
+        final minWidth = viewportConstraints.maxWidth < double.infinity ? viewportConstraints.maxWidth : 0.0;
+        final minHeight = viewportConstraints.maxHeight < double.infinity ? viewportConstraints.maxHeight : 0.0;
         return DocumentScrollable(
           autoScroller: _autoScrollController,
           scrollController: widget.scrollController,
@@ -715,8 +717,8 @@ class SuperEditorState extends State<SuperEditor> {
               // have to explicitly tell the gesture area to be at least as tall
               // as the viewport (in case the document content is shorter than
               // the viewport).
-              minWidth: viewportConstraints.maxWidth < double.infinity ? viewportConstraints.maxWidth : 0,
-              minHeight: viewportConstraints.maxHeight < double.infinity ? viewportConstraints.maxHeight : 0,
+              minWidth: minWidth,
+              minHeight: minHeight,
             ),
             child: Stack(
               clipBehavior: Clip.none,
@@ -745,7 +747,10 @@ class SuperEditorState extends State<SuperEditor> {
                 ),
                 Align(
                   alignment: Alignment.topCenter,
-                  child: documentLayout,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: minHeight),
+                    child: documentLayout,
+                  ),
                 ),
               ],
             ),
