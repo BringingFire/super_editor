@@ -626,6 +626,8 @@ class SuperEditorState extends State<SuperEditor> {
 
   Widget _buildDesktopGestureSystem(Widget documentLayout) {
     return LayoutBuilder(builder: (context, viewportConstraints) {
+      final minWidth = viewportConstraints.maxWidth < double.infinity ? viewportConstraints.maxWidth : 0.0;
+      final minHeight = viewportConstraints.maxHeight < double.infinity ? viewportConstraints.maxHeight : 0.0;
       return DocumentScrollable(
         autoScroller: _autoScrollController,
         scrollController: widget.scrollController,
@@ -639,8 +641,8 @@ class SuperEditorState extends State<SuperEditor> {
             // have to explicitly tell the gesture area to be at least as tall
             // as the viewport (in case the document content is shorter than
             // the viewport).
-            minWidth: viewportConstraints.maxWidth < double.infinity ? viewportConstraints.maxWidth : 0,
-            minHeight: viewportConstraints.maxHeight < double.infinity ? viewportConstraints.maxHeight : 0,
+            minWidth: minWidth,
+            minHeight: minHeight,
           ),
           child: Stack(
             clipBehavior: Clip.none,
@@ -664,16 +666,19 @@ class SuperEditorState extends State<SuperEditor> {
               // The document that the user is editing.
               Align(
                 alignment: Alignment.topCenter,
-                child: Stack(
-                  children: [
-                    documentLayout,
-                    // We display overlay builders in this inner-Stack so that they
-                    // match the document size, rather than the viewport size.
-                    for (final overlayBuilder in widget.documentOverlayBuilders)
-                      Positioned.fill(
-                        child: overlayBuilder.build(context, editContext),
-                      ),
-                  ],
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: minHeight),
+                  child: Stack(
+                    children: [
+                      documentLayout,
+                      // We display overlay builders in this inner-Stack so that they
+                      // match the document size, rather than the viewport size.
+                      for (final overlayBuilder in widget.documentOverlayBuilders)
+                        Positioned.fill(
+                          child: overlayBuilder.build(context, editContext),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],
