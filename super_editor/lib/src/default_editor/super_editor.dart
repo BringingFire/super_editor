@@ -48,6 +48,7 @@ typedef DocumentLayoutBuilder = Widget Function({
   required SingleColumnLayoutPresenter presenter,
   required List<ComponentBuilder> componentBuilders,
   required List<DocumentLayerBuilder> documentOverlayBuilders,
+  required List<DocumentLayerBuilder> documentUnderlayBuilders,
   bool showDebugPaint,
 });
 
@@ -59,6 +60,7 @@ Widget _defaultDocumentLayoutBuilder({
   required SingleColumnLayoutPresenter presenter,
   required List<ComponentBuilder> componentBuilders,
   required List<DocumentLayerBuilder> documentOverlayBuilders,
+  required List<DocumentLayerBuilder> documentUnderlayBuilders,
   bool showDebugPaint = false,
 }) {
   switch (gestureMode) {
@@ -74,6 +76,10 @@ Widget _defaultDocumentLayoutBuilder({
         overlays: [
           for (final overlayBuilder in documentOverlayBuilders) //
             overlayBuilder.build(context, editContext),
+        ],
+        underlays: [
+          for (final underlayBuilder in documentUnderlayBuilders) //
+            underlayBuilder.build(context, editContext),
         ],
       );
     case DocumentGestureMode.android:
@@ -163,6 +169,7 @@ class SuperEditor extends StatefulWidget {
     this.iOSToolbarBuilder,
     this.createOverlayControlsClipper,
     this.documentOverlayBuilders = const [DefaultCaretOverlayBuilder()],
+    this.documentUnderlayBuilders = const [],
     this.debugPaint = const DebugPaintConfig(),
     this.autofocus = false,
     this.overlayController,
@@ -296,6 +303,10 @@ class SuperEditor extends StatefulWidget {
 
   /// The [Document] that's edited by the [editor].
   final Document document;
+
+  /// Layers that are displayed on below the document layout, aligned
+  /// with the location and size of the document layout.
+  final List<DocumentLayerBuilder> documentUnderlayBuilders;
 
   /// Layers that are displayed on top of the document layout, aligned
   /// with the location and size of the document layout.
@@ -609,6 +620,7 @@ class SuperEditorState extends State<SuperEditor> {
               context: context,
               editContext: editContext,
               documentOverlayBuilders: widget.documentOverlayBuilders,
+              documentUnderlayBuilders: widget.documentUnderlayBuilders,
               gestureMode: gestureMode,
               documentLayoutKey: _docLayoutKey,
               presenter: _docLayoutPresenter!,
