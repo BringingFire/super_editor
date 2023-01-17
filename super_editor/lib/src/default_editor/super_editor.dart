@@ -117,6 +117,7 @@ class SuperEditor extends StatefulWidget {
     this.createOverlayControlsClipper,
     this.selectionLayerLinks,
     this.documentOverlayBuilders = const [DefaultCaretOverlayBuilder()],
+    this.documentUnderlayBuilders = const [],
     this.autofocus = false,
     this.overlayController,
     this.plugins = const {},
@@ -257,6 +258,10 @@ class SuperEditor extends StatefulWidget {
 
   /// The [Document] that's edited by the [editor].
   final Document document;
+
+  /// Layers that are displayed on below the document layout, aligned
+  /// with the location and size of the document layout.
+  final List<SuperEditorLayerBuilder> documentUnderlayBuilders;
 
   /// Layers that are displayed on top of the document layout, aligned
   /// with the location and size of the document layout.
@@ -537,6 +542,10 @@ class SuperEditorState extends State<SuperEditor> {
               // Add all overlays that the app wants.
               for (final overlayBuilder in widget.documentOverlayBuilders) //
                 (context) => overlayBuilder.build(context, editContext),
+            ],
+            underlays: [
+              for (final underlayBuilder in widget.documentUnderlayBuilders) //
+                (context) => underlayBuilder.build(context, editContext),
             ],
             debugPaint: widget.debugPaint,
           ),
