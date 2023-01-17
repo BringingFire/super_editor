@@ -116,6 +116,7 @@ class SuperEditor extends StatefulWidget {
     this.iOSToolbarBuilder,
     this.createOverlayControlsClipper,
     this.documentOverlayBuilders = const [DefaultCaretOverlayBuilder()],
+    this.documentUnderlayBuilders = const [],
     this.autofocus = false,
     this.overlayController,
     this.plugins = const {},
@@ -250,6 +251,10 @@ class SuperEditor extends StatefulWidget {
 
   /// The [Document] that's edited by the [editor].
   final Document document;
+
+  /// Layers that are displayed on below the document layout, aligned
+  /// with the location and size of the document layout.
+  final List<SuperEditorLayerBuilder> documentUnderlayBuilders;
 
   /// Layers that are displayed on top of the document layout, aligned
   /// with the location and size of the document layout.
@@ -524,6 +529,8 @@ class SuperEditorState extends State<SuperEditor> {
                   links: _selectionLinks,
                 ).build(context, editContext);
               },
+              for (final underlayBuilder in widget.documentUnderlayBuilders) //
+                (context) => underlayBuilder.build(context, editContext),
             ],
             overlays: [
               for (final overlayBuilder in widget.documentOverlayBuilders) //
