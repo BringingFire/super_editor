@@ -14,6 +14,7 @@ import 'package:super_editor/src/default_editor/document_gestures_touch_android.
 import 'package:super_editor/src/default_editor/document_gestures_touch_ios.dart';
 import 'package:super_editor/src/default_editor/document_scrollable.dart';
 import 'package:super_editor/src/default_editor/list_items.dart';
+import 'package:super_editor/src/infrastructure/document_gestures.dart';
 import 'package:super_editor/src/infrastructure/platforms/ios/ios_document_controls.dart';
 import 'package:super_text_layout/super_text_layout.dart';
 
@@ -114,6 +115,7 @@ class SuperEditor extends StatefulWidget {
     this.createOverlayControlsClipper,
     this.debugPaint = const DebugPaintConfig(),
     this.autofocus = false,
+    this.scrollOff = AxisOffset.zero,
   })  : componentBuilders = defaultComponentBuilders,
         keyboardActions = defaultKeyboardActions,
         softwareKeyboardHandler = null,
@@ -147,6 +149,7 @@ class SuperEditor extends StatefulWidget {
     this.createOverlayControlsClipper,
     this.debugPaint = const DebugPaintConfig(),
     this.autofocus = false,
+    this.scrollOff = AxisOffset.zero,
   })  : stylesheet = stylesheet ?? defaultStylesheet,
         selectionStyles = selectionStyle ?? defaultSelectionStyle,
         keyboardActions = keyboardActions ?? defaultKeyboardActions,
@@ -184,6 +187,7 @@ class SuperEditor extends StatefulWidget {
     this.documentUnderlayBuilders = const [],
     this.debugPaint = const DebugPaintConfig(),
     this.autofocus = false,
+    this.scrollOff = AxisOffset.zero,
   })  : stylesheet = stylesheet ?? defaultStylesheet,
         selectionStyles = selectionStyle ?? defaultSelectionStyle,
         keyboardActions = keyboardActions ?? defaultKeyboardActions,
@@ -191,6 +195,10 @@ class SuperEditor extends StatefulWidget {
             ? [...componentBuilders, const UnknownComponentBuilder()]
             : [...defaultComponentBuilders, const UnknownComponentBuilder()],
         super(key: key);
+
+  /// How far the selection extent can be from the top and bottom before triggering auto-scroll behavior. Defaults to
+  /// zero for both top and bottom, so scrolling will only take place if the caret would leave the viewport.
+  final AxisOffset scrollOff;
 
   /// [FocusNode] for the entire `SuperEditor`.
   final FocusNode? focusNode;
@@ -342,7 +350,9 @@ class SuperEditorState extends State<SuperEditor> {
     _composer = widget.composer ?? DocumentComposer();
     _composer.addListener(_updateComposerPreferencesAtSelection);
 
-    _autoScrollController = AutoScrollController();
+    _autoScrollController = AutoScrollController(
+      selectionExtentAutoScrollBoundary: widget.scrollOff,
+    );
 
     _docLayoutKey = widget.documentLayoutKey ?? GlobalKey();
 
