@@ -410,9 +410,12 @@ class AutoScrollController with ChangeNotifier {
       globalRegion.height,
     );
 
-    final beyondTopExtent = min(selectionExtentRectInViewport.top, 0).abs();
+    final beyondTopExtent = min(selectionExtentRectInViewport.top - selectionExtentAutoScrollBoundary.leading, 0).abs();
 
-    final beyondBottomExtent = max(selectionExtentRectInViewport.bottom - viewportBox.size.height, 0);
+    final beyondBottomExtent = max(
+      selectionExtentRectInViewport.bottom - viewportBox.size.height + selectionExtentAutoScrollBoundary.trailing,
+      0,
+    );
 
     editorScrollingLog.finest('Ensuring extent is visible.');
     editorScrollingLog.finest(' - viewport size: ${viewportBox.size}');
