@@ -17,6 +17,7 @@ import 'package:super_editor/src/default_editor/document_scrollable.dart';
 import 'package:super_editor/src/default_editor/list_items.dart';
 import 'package:super_editor/src/default_editor/tasks.dart';
 import 'package:super_editor/src/infrastructure/_logging.dart';
+import 'package:super_editor/src/infrastructure/document_gestures.dart';
 import 'package:super_editor/src/infrastructure/documents/document_scaffold.dart';
 import 'package:super_editor/src/infrastructure/documents/document_scroller.dart';
 import 'package:super_editor/src/infrastructure/links.dart';
@@ -121,6 +122,7 @@ class SuperEditor extends StatefulWidget {
     this.autofocus = false,
     this.overlayController,
     this.plugins = const {},
+    this.scrollOff = AxisOffset.zero,
     this.debugPaint = const DebugPaintConfig(),
   })  : stylesheet = stylesheet ?? defaultStylesheet,
         selectionStyles = selectionStyle ?? defaultSelectionStyle,
@@ -128,6 +130,10 @@ class SuperEditor extends StatefulWidget {
             ? [...componentBuilders, const UnknownComponentBuilder()]
             : [...defaultComponentBuilders, const UnknownComponentBuilder()],
         super(key: key);
+
+  /// How far the selection extent can be from the top and bottom before triggering auto-scroll behavior. Defaults to
+  /// zero for both top and bottom, so scrolling will only take place if the caret would leave the viewport.
+  final AxisOffset scrollOff;
 
   /// [FocusNode] for the entire `SuperEditor`.
   final FocusNode? focusNode;
@@ -341,7 +347,9 @@ class SuperEditorState extends State<SuperEditor> {
     _composer = widget.composer;
 
     _scrollController = widget.scrollController ?? ScrollController();
-    _autoScrollController = AutoScrollController();
+    _autoScrollController = AutoScrollController(
+      selectionExtentAutoScrollBoundary: widget.scrollOff,
+    );
 
     _docLayoutKey = widget.documentLayoutKey ?? GlobalKey();
 
