@@ -504,12 +504,6 @@ Updating drag selection:
     }
   }
 
-  bool _getIsDragginBack(Offset baseOffset, Offset extentOffset) {
-    if (baseOffset.dy > extentOffset.dy) return true;
-    if (baseOffset.dx > extentOffset.dx && baseOffset.dy == extentOffset.dy) return true;
-    return false;
-  }
-
   void _selectRegion({
     required DocumentLayout documentLayout,
     required Offset baseOffsetInDocument,
@@ -575,9 +569,13 @@ Updating drag selection:
       }
 
       if ([basePosition.nodePosition, extentPosition.nodePosition].every((e) => e is TextPosition)) {
-        final baseGlobalOffset = documentLayout.getGlobalOffsetFromDocumentOffset(baseOffsetInDocument);
-        final extentGlobalOffset = documentLayout.getGlobalOffsetFromDocumentOffset(extentOffsetInDocument);
-        final bool isDraggingBack = _getIsDragginBack(baseGlobalOffset, extentGlobalOffset);
+        final baseNodeIndex = widget.document.getNodeIndexById(basePosition.nodeId);
+        final extentNodeIndex = widget.document.getNodeIndexById(extentPosition.nodeId);
+        bool isDraggingBack = baseNodeIndex > extentNodeIndex;
+        if (baseNodeIndex == extentNodeIndex) {
+          isDraggingBack =
+              (basePosition.nodePosition as TextPosition).offset > (extentPosition.nodePosition as TextPosition).offset;
+        }
         basePosition = isDraggingBack ? baseWordSelection.extent : baseWordSelection.base;
         extentPosition = isDraggingBack ? extentWordSelection.base : extentWordSelection.extent;
       }
