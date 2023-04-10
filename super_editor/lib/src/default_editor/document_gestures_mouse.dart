@@ -558,7 +558,6 @@ Updating drag selection:
         _clearSelection();
         return;
       }
-      basePosition = baseWordSelection.base;
 
       final extentWordSelection = getWordSelection(
         docPosition: extentPosition,
@@ -568,7 +567,18 @@ Updating drag selection:
         _clearSelection();
         return;
       }
-      extentPosition = extentWordSelection.extent;
+
+      if ([basePosition.nodePosition, extentPosition.nodePosition].every((e) => e is TextPosition)) {
+        final baseNodeIndex = widget.document.getNodeIndexById(basePosition.nodeId);
+        final extentNodeIndex = widget.document.getNodeIndexById(extentPosition.nodeId);
+        bool isDraggingBack = baseNodeIndex > extentNodeIndex;
+        if (baseNodeIndex == extentNodeIndex) {
+          isDraggingBack =
+              (basePosition.nodePosition as TextPosition).offset > (extentPosition.nodePosition as TextPosition).offset;
+        }
+        basePosition = isDraggingBack ? baseWordSelection.extent : baseWordSelection.base;
+        extentPosition = isDraggingBack ? extentWordSelection.base : extentWordSelection.extent;
+      }
     }
 
     widget.selectionNotifier.value = DocumentSelection(
