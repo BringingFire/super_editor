@@ -208,6 +208,7 @@ class SuperReaderState extends State<SuperReader> {
 
     if (widget.document != oldWidget.document) {
       _editor = _ReadOnlyDocumentEditor(document: widget.document);
+      _createLayoutPresenter();
     }
     if (widget.selection != oldWidget.selection) {
       _selection = widget.selection ?? ValueNotifier<DocumentSelection?>(null);
