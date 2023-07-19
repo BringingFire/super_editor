@@ -76,11 +76,11 @@ Widget _defaultDocumentLayoutBuilder({
         ),
         overlays: [
           for (final overlayBuilder in documentOverlayBuilders) //
-            overlayBuilder.build(context, editContext),
+            (context) => overlayBuilder.build(context, editContext),
         ],
         underlays: [
           for (final underlayBuilder in documentUnderlayBuilders) //
-            underlayBuilder.build(context, editContext),
+            (context) => underlayBuilder.build(context, editContext),
         ],
       );
     case DocumentGestureMode.android:
