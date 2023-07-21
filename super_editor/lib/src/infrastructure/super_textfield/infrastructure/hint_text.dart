@@ -47,7 +47,13 @@ TextStyle defaultHintStyleBuilder(Set<Attribution> attributions) {
   );
 
   for (final attribution in attributions) {
-    if (attribution == header1Attribution) {
+    if (attribution == sessionHeaderAttribution) {
+      newStyle = newStyle.copyWith(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        height: 1.0,
+      );
+    } else if (attribution == header1Attribution) {
       newStyle = newStyle.copyWith(
         fontSize: 24,
         fontWeight: FontWeight.bold,

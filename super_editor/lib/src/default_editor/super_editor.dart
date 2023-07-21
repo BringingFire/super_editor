@@ -985,6 +985,19 @@ final defaultStylesheet = Stylesheet(
       },
     ),
     StyleRule(
+      const BlockSelector("sessionHeader"),
+      (doc, docNode) {
+        return {
+          "padding": const CascadingPadding.only(top: 40),
+          "textStyle": const TextStyle(
+            color: Color(0xFF333333),
+            fontSize: 38,
+            fontWeight: FontWeight.bold,
+          ),
+        };
+      },
+    ),
+    StyleRule(
       const BlockSelector("header1"),
       (doc, docNode) {
         return {
@@ -1028,6 +1041,14 @@ final defaultStylesheet = Stylesheet(
       (doc, docNode) {
         return {
           "padding": const CascadingPadding.only(top: 24),
+        };
+      },
+    ),
+    StyleRule(
+      const BlockSelector("paragraph").after("sessionHeader"),
+      (doc, docNode) {
+        return {
+          "padding": const CascadingPadding.only(top: 0),
         };
       },
     ),

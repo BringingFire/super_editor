@@ -1,5 +1,8 @@
 import 'package:attributed_text/attributed_text.dart';
 
+/// Session Header style block attribution.
+const sessionHeaderAttribution = NamedAttribution('sessionHeader');
+
 /// Header 1 style block attribution.
 const header1Attribution = NamedAttribution('header1');
 
