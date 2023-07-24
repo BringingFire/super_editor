@@ -143,7 +143,7 @@ class ParagraphComponentBuilder implements ComponentBuilder {
   }
 
   @override
-  ParagraphComponent? createComponent(
+  Widget? createComponent(
       SingleColumnDocumentComponentContext componentContext, SingleColumnLayoutComponentViewModel componentViewModel) {
     if (componentViewModel is! ParagraphComponentViewModel) {
       return null;
