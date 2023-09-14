@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:attributed_text/attributed_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:linkify/linkify.dart';
@@ -23,6 +22,7 @@ import 'horizontal_rule.dart';
 import 'image.dart';
 import 'multi_node_editing.dart';
 import 'text_tools.dart';
+import 'package:super_editor/super_editor.dart';
 
 /// Performs common, high-level editing and composition tasks
 /// with a simplified API.
@@ -813,7 +813,7 @@ class CommonEditorOperations {
 
       if (selectableNode != null) {
         final nextComponent = documentLayoutResolver().getComponentByNodeId(selectableNode.id);
-        if (nextComponent != null) {
+        if (nextComponent != null && !nextComponent.isHidden) {
           foundSelectableNode = nextComponent.isVisualSelectionSupported();
         }
         prevNode = selectableNode;
@@ -834,7 +834,7 @@ class CommonEditorOperations {
 
       if (selectableNode != null) {
         final nextComponent = documentLayoutResolver().getComponentByNodeId(selectableNode.id);
-        if (nextComponent != null) {
+        if (nextComponent != null && !nextComponent.isHidden) {
           foundSelectableNode = nextComponent.isVisualSelectionSupported();
         }
         prevNode = selectableNode;
