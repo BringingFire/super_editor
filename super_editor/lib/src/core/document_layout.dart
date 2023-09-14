@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:super_editor/src/core/editor.dart';
 
-import 'document_selection.dart';
 import 'document.dart';
+import 'document_selection.dart';
 
 /// Obtains a [DocumentLayout].
 ///
@@ -28,6 +28,26 @@ class DocumentLayoutEditable implements Editable {
 
   @override
   void onTransactionStart() {}
+}
+
+class HiddenComponent extends StatelessWidget {
+  const HiddenComponent({super.key, required this.child, this.hiding = true});
+
+  final Widget child;
+  final bool hiding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: !hiding,
+      maintainAnimation: false,
+      maintainInteractivity: false,
+      maintainSemantics: false,
+      maintainSize: false,
+      maintainState: true,
+      child: child,
+    );
+  }
 }
 
 /// Abstract representation of a document layout.
@@ -270,6 +290,10 @@ mixin DocumentComponent<T extends StatefulWidget> on State<T> {
   /// document layout.
   bool isVisualSelectionSupported() => true;
 
+  /// Returns `true` if the component is visually hidden and should be ignored
+  /// for the purposes of hit testing, cursor movement, etc.
+  bool get isHidden => context.findAncestorWidgetOfExactType<HiddenComponent>()?.hiding ?? false;
+
   /// Returns the desired [MouseCursor] at the given (x,y) [localOffset], or
   /// [null] if this component has no preference for the cursor style.
   MouseCursor? getDesiredCursorAtOffset(Offset localOffset);
@@ -409,6 +433,9 @@ mixin ProxyDocumentComponent<T extends StatefulWidget> implements DocumentCompon
   MouseCursor? getDesiredCursorAtOffset(Offset localOffset) {
     return _childDocumentComponent.getDesiredCursorAtOffset(_getChildOffset(localOffset));
   }
+
+  @override
+  bool get isHidden => _childDocumentComponent.isHidden;
 }
 
 /// Preferences for how the document selection should change, e.g.,
