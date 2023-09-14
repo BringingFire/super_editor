@@ -1,26 +1,9 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:attributed_text/attributed_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:super_editor/src/core/document.dart';
-import 'package:super_editor/src/core/document_composer.dart';
-import 'package:super_editor/src/core/document_layout.dart';
-import 'package:super_editor/src/core/document_selection.dart';
-import 'package:super_editor/src/core/editor.dart';
-import 'package:super_editor/src/default_editor/list_items.dart';
-import 'package:super_editor/src/default_editor/paragraph.dart';
-import 'package:super_editor/src/default_editor/selection_upstream_downstream.dart';
-import 'package:super_editor/src/default_editor/tasks.dart';
-import 'package:super_editor/src/default_editor/text.dart';
-import 'package:super_editor/src/infrastructure/_logging.dart';
-
-import 'attributions.dart';
-import 'horizontal_rule.dart';
-import 'image.dart';
-import 'multi_node_editing.dart';
-import 'text_tools.dart';
+import 'package:super_editor/super_editor.dart';
 
 /// Performs common, high-level editing and composition tasks
 /// with a simplified API.
@@ -812,7 +795,7 @@ class CommonEditorOperations {
 
       if (selectableNode != null) {
         final nextComponent = documentLayoutResolver().getComponentByNodeId(selectableNode.id);
-        if (nextComponent != null) {
+        if (nextComponent != null && !nextComponent.isHidden) {
           foundSelectableNode = nextComponent.isVisualSelectionSupported();
         }
         prevNode = selectableNode;
@@ -833,7 +816,7 @@ class CommonEditorOperations {
 
       if (selectableNode != null) {
         final nextComponent = documentLayoutResolver().getComponentByNodeId(selectableNode.id);
-        if (nextComponent != null) {
+        if (nextComponent != null && !nextComponent.isHidden) {
           foundSelectableNode = nextComponent.isVisualSelectionSupported();
         }
         prevNode = selectableNode;
