@@ -87,8 +87,8 @@ class BlinkController with ChangeNotifier {
     notifyListeners();
   }
 
-  void stopBlinking() {
-    _isVisible = true; // If we're not blinking then we need to be visible
+  void stopBlinking({bool visible = true}) {
+    _isVisible = visible; // If we're not blinking then we need to be visible
 
     if (_ticker != null) {
       // We're using a Ticker to blink. Stop it.
