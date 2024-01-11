@@ -142,6 +142,7 @@ class SuperEditor extends StatefulWidget {
     this.scrollOff = AxisOffset.zero,
     this.debugPaint = const DebugPaintConfig(),
     this.shrinkWrap = false,
+    this.documentLayoutBuilder,
   })  : stylesheet = stylesheet ?? defaultStylesheet,
         selectionStyles = selectionStyle ?? defaultSelectionStyle,
         componentBuilders = [
@@ -371,6 +372,9 @@ class SuperEditor extends StatefulWidget {
   /// Whether the scroll view used by the editor should shrink-wrap its contents.
   /// Only used when editor is not inside an scrollable.
   final bool shrinkWrap;
+
+  /// The [DocumentLayoutBuilder] to pass to [DocumentScaffold].
+  final DocumentLayoutBuilder? documentLayoutBuilder;
 
   @override
   SuperEditorState createState() => SuperEditorState();
@@ -707,6 +711,7 @@ class SuperEditorState extends State<SuperEditor> {
               autoScrollController: _autoScrollController,
               scroller: _scroller,
               presenter: presenter,
+              documentLayoutBuilder: widget.documentLayoutBuilder,
               componentBuilders: widget.componentBuilders,
               shrinkWrap: widget.shrinkWrap,
               underlays: [
