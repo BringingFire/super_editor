@@ -8,4 +8,5 @@ packages:
   - super_text_layout
   - super_text_layout/example
   - attributed_text
+  - golden_runner
   - website
