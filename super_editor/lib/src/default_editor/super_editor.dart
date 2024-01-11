@@ -137,6 +137,7 @@ class SuperEditor extends StatefulWidget {
     this.plugins = const {},
     this.scrollOff = AxisOffset.zero,
     this.debugPaint = const DebugPaintConfig(),
+    this.documentLayoutBuilder,
   })  : stylesheet = stylesheet ?? defaultStylesheet,
         selectionStyles = selectionStyle ?? defaultSelectionStyle,
         componentBuilders = componentBuilders != null
@@ -349,6 +350,9 @@ class SuperEditor extends StatefulWidget {
   /// Paints some extra visual ornamentation to help with
   /// debugging.
   final DebugPaintConfig debugPaint;
+
+  /// The [DocumentLayoutBuilder] to pass to [DocumentScaffold].
+  final DocumentLayoutBuilder? documentLayoutBuilder;
 
   @override
   SuperEditorState createState() => SuperEditorState();
@@ -669,6 +673,7 @@ class SuperEditorState extends State<SuperEditor> {
                   autoScrollController: _autoScrollController,
                   scroller: _scroller,
                   presenter: presenter,
+                  documentLayoutBuilder: widget.documentLayoutBuilder,
                   componentBuilders: widget.componentBuilders,
                   underlays: [
                     // Add all underlays that the app wants.

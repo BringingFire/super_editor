@@ -7,6 +7,30 @@ import 'package:super_editor/src/infrastructure/content_layers.dart';
 import 'package:super_editor/src/infrastructure/documents/document_scroller.dart';
 import 'package:super_editor/src/infrastructure/viewport_size_reporting.dart';
 
+typedef DocumentLayoutBuilder = Widget Function({
+  required SingleColumnLayoutPresenter presenter,
+  required List<ComponentBuilder> componentBuilders,
+  VoidCallback? onBuildScheduled,
+  required Key documentLayoutKey,
+  required DebugPaintConfig debugPaint,
+});
+
+Widget _defaultDocumentLayoutBuilder({
+  required SingleColumnLayoutPresenter presenter,
+  required List<ComponentBuilder> componentBuilders,
+  VoidCallback? onBuildScheduled,
+  required Key documentLayoutKey,
+  required DebugPaintConfig debugPaint,
+}) {
+  return SingleColumnDocumentLayout(
+    key: documentLayoutKey,
+    presenter: presenter,
+    componentBuilders: componentBuilders,
+    onBuildScheduled: onBuildScheduled,
+    showDebugPaint: debugPaint.layout,
+  );
+}
+
 /// A scaffold that combines pieces to create a scrolling single-column document, with
 /// gestures placed beneath the document.
 ///
@@ -26,7 +50,11 @@ class DocumentScaffold<ContextType> extends StatefulWidget {
     this.underlays = const [],
     this.overlays = const [],
     this.debugPaint = const DebugPaintConfig(),
+    this.documentLayoutBuilder,
   });
+
+  /// Function that is used to construct the child widget tree representing the laid out document.
+  final DocumentLayoutBuilder? documentLayoutBuilder;
 
   /// [LayerLink] that's is attached to the document layout.
   final LayerLink documentLayoutLink;
@@ -140,12 +168,12 @@ class _DocumentScaffoldState extends State<DocumentScaffold> {
       child: CompositedTransformTarget(
         link: widget.documentLayoutLink,
         child: ContentLayers(
-          content: (onBuildScheduled) => SingleColumnDocumentLayout(
-            key: widget.documentLayoutKey,
+          content: (onBuildScheduled) => (widget.documentLayoutBuilder ?? _defaultDocumentLayoutBuilder).call(
+            documentLayoutKey: widget.documentLayoutKey,
             presenter: widget.presenter,
             componentBuilders: widget.componentBuilders,
             onBuildScheduled: onBuildScheduled,
-            showDebugPaint: widget.debugPaint.layout,
+            debugPaint: widget.debugPaint,
           ),
           underlays: widget.underlays,
           overlays: widget.overlays,
