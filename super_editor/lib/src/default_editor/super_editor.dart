@@ -22,7 +22,6 @@ import 'package:super_editor/src/default_editor/list_items.dart';
 import 'package:super_editor/src/default_editor/tasks.dart';
 import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/content_layers.dart';
-import 'package:super_editor/src/infrastructure/document_gestures.dart';
 import 'package:super_editor/src/infrastructure/documents/document_scaffold.dart';
 import 'package:super_editor/src/infrastructure/documents/document_scroller.dart';
 import 'package:super_editor/src/infrastructure/documents/selection_leader_document_layer.dart';
@@ -135,7 +134,7 @@ class SuperEditor extends StatefulWidget {
     this.iOSToolbarBuilder,
     this.createOverlayControlsClipper,
     this.plugins = const {},
-    this.scrollOff = AxisOffset.zero,
+    this.autoScrollController,
     this.debugPaint = const DebugPaintConfig(),
     this.documentLayoutBuilder,
   })  : stylesheet = stylesheet ?? defaultStylesheet,
@@ -144,10 +143,6 @@ class SuperEditor extends StatefulWidget {
             ? [...componentBuilders, const UnknownComponentBuilder()]
             : [...defaultComponentBuilders, TaskComponentBuilder(editor), const UnknownComponentBuilder()],
         super(key: key);
-
-  /// How far the selection extent can be from the top and bottom before triggering auto-scroll behavior. Defaults to
-  /// zero for both top and bottom, so scrolling will only take place if the caret would leave the viewport.
-  final AxisOffset scrollOff;
 
   /// [FocusNode] for the entire `SuperEditor`.
   final FocusNode? focusNode;
@@ -198,6 +193,8 @@ class SuperEditor extends StatefulWidget {
   @Deprecated(
       "The DocumentComposer is now retrieved from the Editor. You should remove this property from your SuperEditor widget.")
   final DocumentComposer? composer;
+
+  final AutoScrollController? autoScrollController;
 
   /// [GlobalKey] that's bound to the [DocumentLayout] within
   /// this `SuperEditor`.
@@ -429,9 +426,7 @@ class SuperEditorState extends State<SuperEditor> {
     _composer = widget.editor.composer;
 
     _scrollController = widget.scrollController ?? ScrollController();
-    _autoScrollController = AutoScrollController(
-      selectionExtentAutoScrollBoundary: widget.scrollOff,
-    );
+    _autoScrollController = widget.autoScrollController ?? AutoScrollController();
 
     _docLayoutKey = widget.documentLayoutKey ?? GlobalKey();
 
@@ -503,6 +498,13 @@ class SuperEditorState extends State<SuperEditor> {
       _softwareKeyboardController = widget.softwareKeyboardController ?? SoftwareKeyboardController();
     }
 
+    if (widget.autoScrollController != oldWidget.autoScrollController) {
+      if (oldWidget.autoScrollController == null) {
+        _autoScrollController.dispose();
+      }
+      _autoScrollController = widget.autoScrollController ?? AutoScrollController();
+    }
+
     _recomputeIfLayoutShouldShowCaret();
   }
 
@@ -519,6 +521,10 @@ class SuperEditorState extends State<SuperEditor> {
     if (widget.focusNode == null) {
       // We are using our own private FocusNode. Dispose it.
       _focusNode.dispose();
+    }
+
+    if (widget.autoScrollController == null) {
+      _autoScrollController.dispose();
     }
 
     super.dispose();
