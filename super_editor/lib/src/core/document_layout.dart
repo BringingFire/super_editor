@@ -30,24 +30,54 @@ class DocumentLayoutEditable implements Editable {
   void onTransactionStart() {}
 }
 
+/// Wraps document components to hide them when [hiding] is true.
+///
+/// A hidden component is not visible but has its state maintained.
+/// This widget will hide its child if [hiding] is true OR it has
+/// an ancestor [HiddenComponent] widget with [hiding] set to true.
 class HiddenComponent extends StatelessWidget {
-  const HiddenComponent({super.key, required this.child, this.hiding = true});
+  const HiddenComponent({
+    super.key,
+    required this.hiding,
+    required this.child,
+  });
 
   final Widget child;
   final bool hiding;
 
   @override
   Widget build(BuildContext context) {
-    return Visibility(
-      visible: !hiding,
-      maintainAnimation: false,
-      maintainInteractivity: false,
-      maintainSemantics: false,
-      maintainSize: false,
-      maintainState: true,
-      child: child,
+    final computedHiding =
+        hiding || (context.dependOnInheritedWidgetOfExactType<_HiddenComponentScope>()?.hiding ?? false);
+    return _HiddenComponentScope(
+      hiding: computedHiding,
+      child: Visibility(
+        visible: !computedHiding,
+        maintainAnimation: false,
+        maintainInteractivity: false,
+        maintainSemantics: false,
+        maintainSize: false,
+        maintainState: true,
+        child: child,
+      ),
     );
   }
+}
+
+class _HiddenComponentScope extends InheritedWidget {
+  const _HiddenComponentScope({required super.child, this.hiding = true});
+
+  final bool hiding;
+
+  @override
+  bool updateShouldNotify(_HiddenComponentScope oldWidget) {
+    return oldWidget.hiding != hiding;
+  }
+
+  static _HiddenComponentScope of(BuildContext context) => _HiddenComponentScope.maybeOf(context)!;
+
+  static _HiddenComponentScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_HiddenComponentScope>();
 }
 
 /// Abstract representation of a document layout.
@@ -318,7 +348,7 @@ mixin DocumentComponent<T extends StatefulWidget> on State<T> {
 
   /// Returns `true` if the component is visually hidden and should be ignored
   /// for the purposes of hit testing, cursor movement, etc.
-  bool get isHidden => context.findAncestorWidgetOfExactType<HiddenComponent>()?.hiding ?? false;
+  bool get isHidden => context.dependOnInheritedWidgetOfExactType<_HiddenComponentScope>()?.hiding ?? false;
 
   /// Returns the desired [MouseCursor] at the given (x,y) [localOffset], or
   /// [null] if this component has no preference for the cursor style.
