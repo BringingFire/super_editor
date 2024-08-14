@@ -69,14 +69,14 @@ class _SuperEditorHardwareKeyHandlerState extends State<SuperEditorHardwareKeyHa
   }
 
   KeyEventResult _onKeyPressed(FocusNode node, KeyEvent keyEvent) {
-    if (!node.hasPrimaryFocus) {
-      // The editor is focused, but doesn't have primary focus. For example:
-      // - The editor has a node with a focused widget.
-      // - There is a focused widget somewhere else in the tree which shares
-      //   focus with the editor, typically a popover toolbar.
-      // Don't run any of the editor key handlers and let the event bubble up.
-      return KeyEventResult.ignored;
-    }
+    // if (!node.hasPrimaryFocus) {
+    //   // The editor is focused, but doesn't have primary focus. For example:
+    //   // - The editor has a node with a focused widget.
+    //   // - There is a focused widget somewhere else in the tree which shares
+    //   //   focus with the editor, typically a popover toolbar.
+    //   // Don't run any of the editor key handlers and let the event bubble up.
+    //   return KeyEventResult.ignored;
+    // }
     editorKeyLog.info("Handling key press: $keyEvent");
     ExecutionInstruction instruction = ExecutionInstruction.continueExecution;
     int index = 0;
@@ -100,6 +100,7 @@ class _SuperEditorHardwareKeyHandlerState extends State<SuperEditorHardwareKeyHa
   @override
   Widget build(BuildContext context) {
     return Focus(
+      debugLabel: 'SuperEditorHardwareKeyHandler',
       focusNode: _focusNode,
       onKeyEvent: widget.keyboardActions.isEmpty ? null : _onKeyPressed,
       autofocus: widget.autofocus,
