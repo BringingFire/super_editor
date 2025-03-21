@@ -1282,6 +1282,7 @@ class AdjustSelectionAroundTagReaction extends EditReaction {
           expand: true,
         );
         break;
+      case SelectionChangeType.placeCaret:
       case SelectionChangeType.expandSelection:
         // Move the base or extent to the side of the tag in the direction of push motion.
         TextNode? baseNode;
@@ -1298,7 +1299,6 @@ class AdjustSelectionAroundTagReaction extends EditReaction {
           extentNode: extentNode,
         );
         break;
-      case SelectionChangeType.placeCaret:
       case SelectionChangeType.pushCaret:
       case SelectionChangeType.collapseSelection:
         throw AssertionError(
